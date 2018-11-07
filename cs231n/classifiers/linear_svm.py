@@ -34,16 +34,20 @@ def svm_loss_naive(W, X, y, reg):
       margin = scores[j] - correct_class_score + 1 # note delta = 1
       if margin > 0:
         loss += margin
+        dW[:,y[i]] -= X[i] 
+        dW[:,j] += X[i] 
 
   # Right now the loss is a sum over all training examples, but we want it
   # to be an average instead so we divide by num_train.
   loss /= num_train
-
   # Add regularization to the loss.
   loss += reg * np.sum(W * W)
+  
+  dW /= num_train
+  dW += reg*W
 
   #############################################################################
-  # TODO:                                                                     #
+  # TODO(DONE):                                                                     #
   # Compute the gradient of the loss function and store it dW.                #
   # Rather that first computing the loss and then computing the derivative,   #
   # it may be simpler to compute the derivative at the same time that the     #
@@ -63,7 +67,7 @@ def svm_loss_vectorized(W, X, y, reg):
   """
   loss = 0.0
   dW = np.zeros(W.shape) # initialize the gradient as zero
-
+  num_train = X.shape[0]
   #############################################################################
   # TODO(DONE):                                                               #
   # Implement a vectorized version of the structured SVM loss, storing the    #
@@ -81,23 +85,17 @@ def svm_loss_vectorized(W, X, y, reg):
   margins[true_classes_scores_indices] = 0
   
   loss = np.sum(margins) / X.shape[0]
-  #############################################################################
-  #                             END OF YOUR CODE                              #
-  #############################################################################
+  loss += 0.5 * reg * np.sum(W * W)
+  
+  binary = np.zeros(margins.shape)
+  binary[margins > 0] = 1
+  row_sum = np.sum(binary, axis=1)
+  binary[np.arange(num_train), y] = -row_sum.T
+  dW = np.dot(X.T, binary)
+  # Average
+  dW /= num_train
 
-
-  #############################################################################
-  # TODO:                                                                     #
-  # Implement a vectorized version of the gradient for the structured SVM     #
-  # loss, storing the result in dW.                                           #
-  #                                                                           #
-  # Hint: Instead of computing the gradient from scratch, it may be easier    #
-  # to reuse some of the intermediate values that you used to compute the     #
-  # loss.                                                                     #
-  #############################################################################
-  pass
-  #############################################################################
-  #                             END OF YOUR CODE                              #
-  #############################################################################
+  # Regularize
+  dW += reg*W
 
   return loss, dW
