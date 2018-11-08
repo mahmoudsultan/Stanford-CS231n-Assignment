@@ -85,7 +85,7 @@ def svm_loss_vectorized(W, X, y, reg):
   margins[true_classes_scores_indices] = 0
   
   loss = np.sum(margins) / X.shape[0]
-  loss += 0.5 * reg * np.sum(W * W)
+  loss += reg * np.sum(W * W)
   
   binary = np.zeros(margins.shape)
   binary[margins > 0] = 1
